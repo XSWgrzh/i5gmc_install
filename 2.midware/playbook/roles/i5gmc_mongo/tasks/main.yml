@@ -1,0 +1,68 @@
+---
+
+- name: Create a directory conf
+  file: path={{mongo_conf}} state=directory mode=777
+
+- name: Create a directory data
+  file: path={{mongo_data}} state=directory mode=0755
+
+- name: Create a directory logs
+  file: path={{mongo_logs}} state=directory mode=0755
+
+- name: Replace mongo.key
+  template: src=mongo.key.j2 dest={{mongo_conf}}/mongo.key
+
+- name: Replace init_mongo
+  template: src=init_mongo.sh.j2 dest={{mongo_conf}}/init_mongo.sh
+
+- name: chmod mongo.key
+  shell: "chown 999 {{mongo_conf}}/mongo.key;
+          chmod 400 {{mongo_conf}}/mongo.key"
+
+- name: Pull new image
+  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(docker ps -a|grep {{module}}|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              docker stop ${_container_id}; \
+              docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: "docker run -d \
+        --privileged \
+        --name={{module}} \
+        -e MONGO_INITDB_ROOT_USERNAME={{mongo_user}} \
+        -e MONGO_INITDB_ROOT_PASSWORD={{mongo_password}}  \
+        --restart=always \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v /etc/hosts:/etc/hosts \
+        -v {{mongo_data}}:/data/db \
+        -v {{mongo_conf}}:/conf    \
+        -p 57017:27017    \
+        --net=i5gmc_net \
+        {{docker_registry}}/{{module}}:{{tag}}  \
+        --replSet={{mongo_replset_name}}  \
+        --oplogSize=128 \
+        --keyFile=/conf/mongo.key "
+
+
+- name: Check result
+  shell: "docker ps "
+  ignore_errors: yes
+  register: docker_ps
+
+- name:  init mongo
+  shell: "sleep 5;
+          docker exec -i i5gmc_mongo sh -c 'mongo -u {{mongo_user}} -p {{mongo_password}} < /conf/init_mongo.sh'"
+
+- name: Result
+  debug: var=docker_ps.stdout_lines
+
+

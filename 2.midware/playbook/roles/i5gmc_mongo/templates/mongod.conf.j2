@@ -1,0 +1,50 @@
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+net:
+    port: 57017
+    bindIp: {{localip}}
+
+processManagement:
+    fork: true
+
+systemLog:
+    destination: file
+    logAppend: true
+    logRotate: reopen
+    path: /var/log/mongodb/mongod.log
+
+storage:
+    dbPath: /var/lib/mongodb
+    directoryPerDB: true
+    journal:
+        enabled: true
+    engine: wiredTiger
+    wiredTiger:
+        engineConfig:
+            cacheSizeGB: 16
+            journalCompressor: snappy
+        collectionConfig:
+            blockCompressor: snappy
+
+{% if mongo_replset_mode %}
+replication:
+    oplogSizeMB: 5120
+    replSetName: {{mongo_replset_name}}
+{% endif %}
+
+operationProfiling:
+    slowOpThresholdMs: 100
+    mode: slowOp
+
+#security:
+#    authorization: enabled
+#    clusterAuthMode: keyFile
+#    keyFile: /srv/mongodb/keyfile
+
+#setParameter:
+#    enableLocalhostAuthBypass: true
+#    authenticationMechanisms: SCRAM-SHA-1
+

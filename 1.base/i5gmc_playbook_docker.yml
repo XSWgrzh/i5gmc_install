@@ -1,0 +1,28 @@
+- hosts : '{{ myhost }}'
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks :
+  - name: install docker
+    shell: sudo curl -sSL https://get.daocloud.io/docker | sh
+    ignore_errors: yes
+
+  - name: systemctl start docker.service
+    shell: systemctl start docker.service
+
+  - name: update /etc/docker/daemon.json
+    template: src=i5gmc_daemon.json.j2 dest=/etc/docker/daemon.json
+
+  - name: systemctl restart docker.service
+    shell: systemctl restart docker.service
+
+  - name: systemctl enable docker.service
+    shell: systemctl enable docker.service
+
+  - name: docker version
+    shell: docker version
+    register: docker_version
+    ignore_errors: yes
+    
+  - name: Result
+    debug: var=docker_version.stdout_lines  

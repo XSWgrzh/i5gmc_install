@@ -1,0 +1,34 @@
+#!/bin/bash
+
+
+if [ {{mysql_master_hostname}} != {{inventory_hostname}} ];then
+      return
+fi
+
+if [[ {{mongo_replset_mode}} ]];then
+    #  config for mongodb replset
+    #echo -e "#################### Init MongoDB Replset ####################"
+    #echo "  Example: "
+    #echo -e "\t 1 sudo docker exec -it i5gmc_mongo mongo -u {{mongo_user}} -p {{mongo_password}}"
+    #echo -e "\t 2 > use admin"
+    #echo -e "\t 3 > cfg={ _id:\"i5gmc\", members:[ {_id:0,host:'p1:57017',priority:2}, {_id:1,host:'p2:57017',priority:1}, {_id:2,host:'p3:57017',arbiterOnly:true}] };"
+    #echo -e "\t 4 > rs.initiate(cfg);"
+    #echo -e "\t 5 > rs.status();"
+
+    use admin;
+    cfg={ _id:\"i5gmc\", members:[ {_id:0,host:'p1:57017',priority:2}, {_id:1,host:'p2:57017',priority:1}, {_id:2,host:'p3:57017',arbiterOnly:true}] };
+    rs.initiate(cfg);
+    rs.status();
+else
+    #echo -e "#################### Init MongoDB Replset ####################"
+    #echo "  Example: "
+    #echo -e "\t 1 sudo docker exec -it i5gmc_mongo mongo -u {{mongo_user}} -p {{mongo_password}}"
+    #echo -e "\t 2 > use admin"
+    #echo -e "\t 3 > rs.initiate();"
+    #echo -e "\t 4 > rs.status();"
+
+    use admin;
+    rs.initiate();
+    rs.status();
+fi
+

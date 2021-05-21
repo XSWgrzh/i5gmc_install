@@ -1,0 +1,26 @@
+
+upstream maapgw {
+  server p1:50002;
+  keepalive 2000;
+}
+
+upstream devportal {
+  server p1:50006;
+  keepalive 2000;
+}
+
+upstream devcenter {
+  server p1:50005;
+  keepalive 2000;
+}
+
+upstream i5gmc_oss {
+  server p1:50009;
+  keepalive 2000;
+}
+
+upstream openapi {
+  server p1:50008;
+  #server 172.16.53.196:50008;
+  keepalive 2000;
+}

@@ -1,0 +1,43 @@
+#!/bin/bash
+#   --restart=always
+
+
+sudo docker run \
+    -d \
+    --name={{module}} \
+    --privileged=true   \
+    --net=host \
+    -e CLUSTER_NAME={{mysql_name}} \
+    -e MYSQL_ROOT_PASSWORD={{mysql_pass}} \
+    -e XTRABACKUP_PASSWORD={{mysql_pass}} \
+{% if mysql_master_hostname == inventory_hostname %}
+    -e CLUSTER_JOIN= \
+{% else %}
+    -e CLUSTER_JOIN={{mysql_master_hostname}} \
+{% endif %}
+    -v {{mysql_lib}}:/var/lib/mysql \
+    -v {{mysql_data}}:/data \
+    -v {{mysql_etc}}:/etc/mysql/ \
+    {{docker_registry}}/{{module}}:{{tag}}
+
+
+ sudo docker run -d \
+ {% if mysql_master_hostname == inventory_hostname %}
+     --name={{mysql_master}} \
+ {% else %}
+      --name={{module}}_{{localip}} \
+ {% endif %}
+     --privileged   \
+     --net=i5gmc_net \
+     -p 53306:3306   \
+     -e CLUSTER_NAME={{mysql_name}} \
+     -e MYSQL_ROOT_PASSWORD={{mysql_pass}} \
+     -e XTRABACKUP_PASSWORD={{mysql_pass}} \
+ {% if mysql_master_hostname == inventory_hostname %}
+     -e CLUSTER_JOIN= \
+ {% else %}
+     -e CLUSTER_JOIN={{mysql_master_hostname}} \
+ {% endif %}
+     -v {{mysql_lib}}:/var/lib/mysql \
+     -v {{mysql_data}}:/data \
+     {{docker_registry}}/{{module}}:{{tag}}

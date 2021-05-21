@@ -1,0 +1,17 @@
+
+{% if mysql_master_hostname == inventory_hostname and mongo_replset_mode %}
+
+use admin;
+cfg={ _id:"{{mongo_replset_name}}", members:[ {_id:0,host:'172.16.169.153:57017',priority:2}, {_id:1,host:'p2:57017',priority:1}, {_id:2,host:'p3:57017',arbiterOnly:true}] };
+rs.initiate(cfg);
+rs.status();
+
+{% elif mysql_master_hostname == inventory_hostname and not mongo_replset_mode %}
+
+use admin;
+cfg={ _id:"i5gmc_replSet", members:[ {_id:0,host:'172.16.169.153:57017',priority:2}] };
+rs.initiate(cfg);
+rs.status();
+
+{% elif mysql_master_hostname != inventory_hostname and mongo_replset_mode %}
+{% endif %}

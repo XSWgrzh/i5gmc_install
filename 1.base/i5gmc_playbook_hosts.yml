@@ -1,0 +1,13 @@
+- hosts : '{{ myhost }}'
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks :
+  - name : backup
+    shell : cp -f /etc/hosts /etc/hosts.bak
+
+  - name : copy /etc/hosts
+    copy : src=/etc/hosts dest=/etc/hosts
+
+  - name : cat /etc/hosts
+    shell : cat /etc/hosts

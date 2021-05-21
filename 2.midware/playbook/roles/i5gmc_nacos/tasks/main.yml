@@ -1,0 +1,47 @@
+---
+
+- name: Create a log conf
+  file: path={{nacos_logs}} state=directory mode=0755
+
+- name: Pull new image
+  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(docker ps -a|grep {{module}}|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              docker stop ${_container_id}; \
+              docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: " docker run -d \
+          --net=host \
+          -v /etc/localtime:/etc/localtime:ro \
+          -v /etc/hosts:/etc/hosts \
+          -e MODE={{nacos_mode}} \
+          -e NACOS_SERVERS={{NACOS_SERVERS}}    \
+          -e SPRING_DATASOURCE_PLATFORM=mysql \
+          -e MYSQL_SERVICE_HOST=p1 \
+          -e MYSQL_SERVICE_PORT=53306 \
+          -e MYSQL_SERVICE_USER=root \
+          -e MYSQL_SERVICE_PASSWORD={{mysql_pass}} \
+          -e MYSQL_SERVICE_DB_NAME=i5gmc_nacos \
+          -e MYSQL_SERVICE_DB_PARAM='noAccessToProcedureBodies=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true'  \
+           -v {{nacos_logs}}:/home/nacos/logs \
+           --name {{module}} \
+           --restart=always \
+           {{docker_registry}}/{{module}}:{{tag}} "
+  
+- name: Check result
+  shell: "docker ps -a"
+  ignore_errors: yes
+  register: docker_ps
+
+- name: Result
+  debug: var=docker_ps.stdout_lines  
+  

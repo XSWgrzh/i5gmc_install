@@ -1,0 +1,5 @@
+{
+	"insecure-registries" : ["{{ DOCKER_LOCAL_REGISTRY }}", "{{ DOCKER_REMOTE_REGISTRY }}"],
+	"log-driver":"json-file",
+  	"log-opts": {"max-size":"500m", "max-file":"3"}
+}

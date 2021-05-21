@@ -1,0 +1,20 @@
+---
+
+- name: Create app home
+  file: path={{app_home}} state=directory mode=777
+
+- name: Create jdk home
+  file: path={{jdk_home}} state=directory mode=777
+
+- name: Create lib home
+  file: path={{jdk_home}}/lib state=directory mode=777
+
+- name: copy app
+  copy: src={{item}} dest={{jdk_home}}
+  with_fileglob:
+    - files/app.zip
+
+- name: unzip app.zip
+  shell: "unzip -d {{jdk_home}} {{jdk_home}}/app.zip  "
+
+

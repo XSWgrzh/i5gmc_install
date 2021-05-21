@@ -1,0 +1,54 @@
+---
+
+- name: Create a directory data
+  file: path={{mysql_data}} state=directory mode=0777
+
+- name: Create a directory conf
+  file: path={{mysql_etc}}/conf.d state=directory mode=0777
+
+- name: Create a directory lib
+  file: path={{mysql_lib}}/ state=directory mode=0777
+
+- name: Replace with real run_mysql.sh
+  template: src=run_mysql.sh.j2 dest={{mysql_home}}/run_mysql.sh
+
+#- name: chmod
+#  shell: "chown polkitd {{mysql_home}} -R"
+
+- name: Copy my.cnf
+  copy: src={{item}} dest={{mysql_etc}}
+  with_fileglob:
+    - files/etc/mysql/*
+
+- name: Pull new image
+  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(docker ps -a|grep {{module}}|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              docker stop ${_container_id}; \
+              docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: "chmod +x {{mysql_home}}/run_mysql.sh; \
+          bash {{mysql_home}}/run_mysql.sh"
+
+- name: Check result
+  shell: "docker ps"
+  ignore_errors: yes
+  register: docker_ps
+
+- name: Copy sql
+  copy: src={{item}} dest={{mysql_home}}
+  with_fileglob:
+    - files/sql/*
+
+
+- name: Result
+  debug: var=docker_ps.stdout_lines

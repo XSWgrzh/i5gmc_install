@@ -1,0 +1,59 @@
+---
+
+base_home: /home/test/i5gmc
+
+###################################### 1.redis ######################################
+redis_home: "{{base_home}}/redis"
+redis_conf: "{{redis_home}}/conf"
+redis_data: "{{redis_home}}/data"
+redis_logs: "{{redis_home}}/logs"
+redis_master_hostname: p1
+redis_pass: "i5gmc9528"
+
+sentinel_home: "{{base_home}}/sentinel"
+sentinel_conf: "{{sentinel_home}}/conf"
+sentinel_data: "{{sentinel_home}}/data"
+sentinel_logs: "{{sentinel_home}}/logs"
+
+###################################### 2.mysql ######################################
+mysql_home: "{{base_home}}/mysql"
+mysql_etc: "{{mysql_home}}/etc/mysql/"
+mysql_lib: "{{mysql_home}}/lib/"
+mysql_data: "{{mysql_home}}/data/"
+mysql_name: i5gmc_pxc
+mysql_pass: i5gmc9528
+mysql_master_hostname: p1
+mysql_master: i5gmc_mysql
+
+###################################### 3.mongo ######################################
+mongo_home: "{{base_home}}/mongo"
+mongo_conf: "{{mongo_home}}/conf"
+mongo_data: "{{mongo_home}}/data"
+mongo_logs: "{{mongo_home}}/logs"
+mongo_user: root
+mongo_password: i5gmc9528
+mongo_master_hostname: p1
+mongo_replset_mode: false
+mongo_replset_name: i5gmc_replSet
+
+###################################### 4.nginx ######################################
+nginx_home: "{{base_home}}/nginx"
+www_home: "{{base_home}}/www"
+nginx_logs: "{{nginx_home}}/logs"
+nginx_conf_d: "{{nginx_home}}/conf.d"
+
+###################################### 5.nacos ######################################
+nacos_home: "{{base_home}}/nacos"
+nacos_logs: "{{nacos_home}}/logs"
+# standalone or cluster
+nacos_mode: standalone
+NACOS_SERVERS: p1:8848
+
+###################################### 6.app ######################################
+app_home: "{{base_home}}/i5gmcApp"
+jdk_home: "{{app_home}}/app"
+nacos_namespace: i5gmcSpace
+nacos_address: p1:8848
+
+
+

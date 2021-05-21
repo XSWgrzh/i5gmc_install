@@ -1,0 +1,31 @@
+- hosts: "{{host}}"
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks:
+    - name: Stop and remove running container if exists
+      shell: "_container_id=$(docker ps -a|grep {{app_name}}|awk '{print $1}'); \
+              if [ \"${_container_id}\" !=  \"\" ]; \
+              then  \
+                  echo \"{{app_name}} is running. stop and remove it\"; \
+                  docker stop ${_container_id}; \
+                  docker rm -f ${_container_id}; \
+              else \
+                  echo \"{{app_name}} is not running.\"; \
+              fi"
+      ignore_errors: yes
+
+    - name: Start new container
+      shell: "docker run -d \
+            --privileged \
+            --name={{app_name}} \
+            --restart=always \
+            -v /etc/localtime:/etc/localtime:ro \
+            -v /etc/hosts:/etc/hosts \
+            -v {{app_home}}:/usr/local/i5gmcApp \
+            -e APP_NAME={{app_name}}  \
+            -e NACOS_ADDRESS={{nacos_address}}   \
+            -e NACOS_NAMESPACE={{nacos_namespace}} \
+            --net=host \
+            {{docker_registry}}/i5gmc_jdk:8.0.3  \
+"

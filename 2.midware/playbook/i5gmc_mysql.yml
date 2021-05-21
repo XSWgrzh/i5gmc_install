@@ -1,0 +1,50 @@
+---
+
+#- hosts: p1
+#  become: true
+##  become_method: sudo
+#  become_user: 'root'
+#  tasks:
+ #   - name: reload network
+ #     shell: " docker network rm i5gmc_net;  \
+ #             docker network create --driver overlay --attachable i5gmc_net"
+
+- hosts: i5gmc_mysql
+  tasks:
+    - name: Query IP of host
+      shell: "echo {{ansible_env.SSH_CONNECTION}}|awk '{print $3}'"
+      register: _local_ip
+
+    - name: Set vars
+      set_fact:
+        module=i5gmc_mysql
+        tag=5.7.32.2
+        localip={{_local_ip.stdout}}
+      ignore_errors: yes
+  
+- hosts: i5gmc_mysql_master
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  roles: 
+    - i5gmc_mysql
+
+
+- hosts: i5gmc_mysql_slave
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  roles:
+    - i5gmc_mysql
+
+- hosts: i5gmc_mysql_master
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks:
+    - name: init sql
+      shell: " sleep 3;
+               docker exec -i i5gmc_mysql mysql -uroot -p{{mysql_pass}} < {{mysql_home}}/i5gmc.sql;
+               docker exec -i i5gmc_mysql mysql -uroot -p{{mysql_pass}} < {{mysql_home}}/i5gmc_sql_update.sql;
+               docker exec -i i5gmc_mysql mysql -uroot -p{{mysql_pass}} < {{mysql_home}}/nacos.sql;
+              "

@@ -1,0 +1,22 @@
+---
+
+- hosts: i5gmc_sentinel
+  tasks:
+    - name: Query IP of host
+      shell: "echo {{ansible_env.SSH_CONNECTION}}|awk '{print $3}'"
+      register: _local_ip
+
+    - name: Set vars
+      set_fact:
+        module=i5gmc_redis
+        tag=5.0.0.1
+        localip={{_local_ip.stdout}}
+      ignore_errors: yes
+
+- hosts: i5gmc_sentinel
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  roles:
+    - i5gmc_sentinel
+

@@ -1,0 +1,10 @@
+---
+
+- hosts : '{{ myhost }}'
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks :
+    - name : join swarm
+      shell : "docker swarm leave --force ; \
+               docker swarm join --token {{ swarm }} {{ host_leader }}:2377"

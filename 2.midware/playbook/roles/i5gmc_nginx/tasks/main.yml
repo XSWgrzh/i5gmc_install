@@ -1,0 +1,70 @@
+---
+
+- name: Create a directory conf
+  file: path={{nginx_home}} state=directory mode=0755
+
+- name: Create a log conf
+  file: path={{nginx_logs}} state=directory mode=0755
+  
+- name: Create a directory www
+  file: path={{www_home}} state=directory mode=0755
+
+- name: Create a directory conf.d
+  file: path={{nginx_conf_d}} state=directory mode=0755
+
+- name: Copy config files nginx.conf
+  copy: src={{item}} dest={{nginx_home}}
+  with_fileglob:
+    - files/conf/*
+
+- name: Copy config d fires
+  copy: src={{item}} dest={{nginx_conf_d}}
+  with_fileglob:
+    - files/conf/conf.d/*
+
+- name: Copy www file
+  copy: src={{item}} dest={{www_home}}
+  with_items:
+    - files/www/i5gmc_devcenter.zip
+    - files/www/i5gmc_devportal.zip
+
+- name: Copy www file
+  shell: "unzip {{www_home}}/i5gmc_devcenter.zip;
+          unzip {{www_home}}/i5gmc_devportal.zip;"
+
+
+- name: Pull new image
+  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(docker ps -a|grep {{module}}|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              docker stop ${_container_id}; \
+              docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: "docker run -d \
+        --name={{module}} \
+        --restart=always \
+        --net=host \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v /etc/hosts:/etc/hosts \
+        -v {{nginx_home}}:/etc/nginx \
+        -v {{nginx_logs}}:/var/log/nginx  \
+        -v {{www_home}}:/www \
+        {{docker_registry}}/{{module}}:{{tag}}"
+  
+- name: Check result
+  shell: "docker ps -a"
+  ignore_errors: yes
+  register: docker_ps
+
+- name: Result
+  debug: var=docker_ps.stdout_lines  
+  

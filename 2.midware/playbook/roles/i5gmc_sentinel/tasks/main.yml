@@ -1,0 +1,49 @@
+---
+
+- name: Create a directory conf
+  file: path={{sentinel_conf}} state=directory mode=777
+
+- name: Create a directory data
+  file: path={{sentinel_data}} state=directory mode=777
+
+- name: Create a directory logs
+  file: path={{sentinel_logs}} state=directory mode=0777
+
+- name: Replace with sentinel-26379.conf
+  template: src=sentinel-56380.conf.j2 dest={{sentinel_conf}}/sentinel-56380.conf
+
+- name: chmod file
+  shell: "chmod 777 {{sentinel_conf}}/sentinel-56380.conf"
+#- name: Pull new image
+#  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(sudo docker ps -a|grep i5gmc_sentinel|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              sudo docker stop ${_container_id}; \
+              sudo docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: "docker run -d \
+        --privileged=true   \
+        --name=i5gmc_sentinel \
+        --restart=always \
+        --net=host \
+        -v /etc/hosts:/etc/hosts \
+        -v {{sentinel_conf}}:/etc/sentinel \
+        {{docker_registry}}/{{module}}:{{tag}} \
+        redis-server /etc/sentinel/sentinel-56380.conf --sentinel"
+
+- name: Check result
+  shell: "docker ps -a"
+  ignore_errors: yes
+  register: docker_ps
+
+- name: Result
+  debug: var=docker_ps.stdout_lines

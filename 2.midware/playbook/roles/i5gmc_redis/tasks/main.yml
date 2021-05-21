@@ -1,0 +1,49 @@
+---
+
+- name: Create a directory conf
+  file: path={{redis_conf}} state=directory mode=0777
+  
+- name: Create a directory data
+  file: path={{redis_data}} state=directory mode=0777
+  
+- name: Create a directory logs
+  file: path={{redis_logs}} state=directory mode=0777
+  
+- name: Replace with redis-56379.conf
+  template: src=redis-56379.conf.j2 dest={{redis_conf}}/redis-56379.conf
+
+- name: Pull new image
+  shell: "docker pull {{docker_registry}}/{{module}}:{{tag}}"
+
+- name: Stop and remove running container if exists
+  shell: "_container_id=$(docker ps -a|grep {{module}}|awk '{print $1}'); \
+          if [ \"${_container_id}\" !=  \"\" ]; \
+          then  \
+              echo \"{{module}} is running. stop and remove it\"; \
+              docker stop ${_container_id}; \
+              docker rm -f ${_container_id}; \
+          else \
+              echo \"{{module}} is not running.\"; \
+          fi"
+  ignore_errors: yes
+
+- name: Start new container
+  shell: "sudo docker run -d \
+        --privileged=true   \
+        --name={{module}} \
+        --restart=always \
+        --net=host \
+        -v /etc/hosts:/etc/hosts \
+        -v {{redis_conf}}:/etc/redis \
+        -v {{redis_data}}:/data \
+        {{docker_registry}}/{{module}}:{{tag}} \
+       redis-server /etc/redis/redis-56379.conf"
+
+- name: Check result
+  shell: "docker ps -a"
+  ignore_errors: yes
+  register: docker_ps
+
+- name: Result
+  debug: var=docker_ps.stdout_lines  
+  

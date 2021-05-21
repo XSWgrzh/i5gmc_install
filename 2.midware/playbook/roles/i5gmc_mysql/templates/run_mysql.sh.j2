@@ -1,0 +1,21 @@
+#!/bin/bash
+#   --restart=always
+
+
+sudo docker run -d   \
+--privileged \
+--restart=always    \
+-e MYSQL_ROOT_PASSWORD={{mysql_pass}} \
+-e CLUSTER_NAME={{mysql_name}} \
+-e XTRABACKUP_PASSWORD={{mysql_pass}} \
+-v {{mysql_data}}:/data  \
+-v {{mysql_lib}}:/var/lib/mysql     \
+{% if mysql_master_hostname == inventory_hostname %}
+--name=i5gmc_mysql  \
+{% else %}
+-e CLUSTER_JOIN=i5gmc_mysql \
+--name={{module}}_{{localip}} \
+{% endif %}
+-p 53306:3306    \
+--net=i5gmc_net \
+docker.jiaxincloud.com:5000/i5gmc_mysql:5.7.32.2

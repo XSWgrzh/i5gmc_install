@@ -1,0 +1,8 @@
+- hosts : '{{ myhost }}'
+  become: true
+  become_method: sudo
+  become_user: 'root'
+  tasks :
+  - hostname : name='{{ myhost }}'
+  - name : show hostname
+    shell : hostname
