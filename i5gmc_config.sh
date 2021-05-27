@@ -4,7 +4,7 @@ export HOST_USER=test
 export HOST_PASS=test
 
 export DOCKER_LOCAL_REGISTRY=p1:5000
-export DOCKER_REMOTE_REGISTRY=docker.jiaxincloud.com:5000
+export DOCKER_REMOTE_REGISTRY=docker.com:5000
 
 export HOST_LEADER=p1
 
